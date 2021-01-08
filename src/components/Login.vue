@@ -36,8 +36,8 @@
       return {
         // 登录表单的数据绑定对象
         loginForm: {
-          username: '',
-          password: ''
+          username: 'admin',
+          password: '123456'
         },
         // 表单的验证规则对象
         loginFormRules: {
@@ -69,7 +69,10 @@
           const {data: res} = await this.$http.post("login", this.loginForm)
           if (res.meta.status !== 200) return this.$message.error('登录失败')
           this.$message.success('登录成功')
-        })
+          // token 只应在当前网站打开期间生效,所以将 token 保存在sessionStorage中
+          window.sessionStorage.setItem("token", res.data.token)
+          this.$router.push('/home')
+        });
       }
     }
   }
