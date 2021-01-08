@@ -7,14 +7,14 @@
       </div>
 
       <!-- 登录表单区域 -->
-      <el-form label-width="0px" class="login_form" :model="loginForm">
+      <el-form label-width="0px" class="login_form" :model="loginForm" :rules="loginFormRules">
         <!-- 用户名 -->
-        <el-form-item>
+        <el-form-item prop="username">
           <el-input prefix-icon="iconfont icon-user" v-model="loginForm.username">
           </el-input>
         </el-form-item>
-        <!-- 用户名 -->
-        <el-form-item>
+        <!-- 密码 -->
+        <el-form-item prop="password">
           <el-input prefix-icon="iconfont icon-3702mima" v-model="loginForm.password" type="password">
           </el-input>
         </el-form-item>
@@ -34,9 +34,27 @@
     name: "Login",
     data() {
       return {
+        // 登录表单的数据绑定对象
         loginForm: {
           username: '',
           password: ''
+        },
+        // 表单的验证规则对象
+        loginFormRules: {
+          // 验证用户名是否合法
+          username: [
+            // required:true必填项
+            // message:出错提示
+            // trigger:触发方式
+            // blur: 鼠标失去焦点
+            {required: true, message: "请输入登录名称", trigger: "blur"},
+            {min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur'}
+          ],
+          // 验证命名是否合法
+          password: [
+            {required: true, message: "请输入登录密码", trigger: "blur"},
+            {min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur'}
+          ]
         }
       }
     }
