@@ -57,11 +57,26 @@
           <template>
             <el-button type="primary" icon="el-icon-edit" size="mini">编辑</el-button>
             <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
-            <el-button type="warning" icon="el-icon-setting" size="mini">分配权限</el-button>
+            <el-button type="warning" icon="el-icon-setting" size="mini" @click="showSetRightDialog">分配权限</el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
+
+    <!--分配权限的对话框-->
+    <el-dialog
+      title="分配权限"
+      :visible.sync="setRightDialogVisible"
+      width="50%"
+    >
+      <!--树形控件-->
+      <el-tree :data="rightsList" :props="treeProps"></el-tree>
+
+      <span slot="footer" class="dialog-footer">
+    <el-button @click="setRightDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="setRightDialogVisible = false">确 定</el-button>
+  </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -71,7 +86,16 @@
     data() {
       return {
         // 所有角色列表数据
-        rolelist: []
+        rolelist: [],
+        // 控制分配权限对话框的显示与隐藏
+        setRightDialogVisible: false,
+        // 所有权限的数据
+        rightslist: [],
+        // 树形控件的属性绑定对象
+        treeProps: {
+          label: 'authName',
+          children: 'children'
+        }
       }
     },
     created() {
@@ -101,6 +125,17 @@
           return this.$message.error('删除权限失败')
         }
         role.children = res.data
+      },
+      //展示分配权限的对话框
+      async showSetRightDialog() {
+        //获取所有权限数据
+        const { data: res } = await this.$http.get('rights/tree')
+        if (res.meta.status !== 200) {
+          return this.$message.error('获取权限数据失败！')
+        }
+        // 把获取到的权限数据保存到data中
+        this.rightsList = res.data
+        this.setRightDialogVisible = true
       }
     }
   }
