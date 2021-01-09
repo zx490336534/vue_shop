@@ -12,8 +12,9 @@
       <!-- 搜索与添加区域-->
       <el-row :gutter="20">
         <el-col :span="7">
-          <el-input placeholder="请输入内容" v-model="input3" class="input-with-select">
-            <el-button slot="append" icon="el-icon-search"></el-button>
+          <el-input placeholder="请输入内容" v-model="queryInfo.query" class="input-with-select" clearable
+                    @clear="getUserList">
+            <el-button slot="append" icon="el-icon-search" @click="getUserList"></el-button>
           </el-input>
         </el-col>
         <el-col :span="4">
@@ -31,7 +32,9 @@
           <template slot-scope="scop">
             <!-- {{scop.row}} 获取当前行数据 -->
             <el-switch
-              v-model="scop.row.mg_state">
+              v-model="scop.row.mg_state"
+              @change="userStateChanged(scop.row)"
+            >
             </el-switch>
           </template>
         </el-table-column>
@@ -98,6 +101,16 @@
       handleCurrentChange(newPage) {
         this.queryInfo.pagenum = newPage
         this.getUserList()
+      },
+      // 监听switch开关状态改变
+      async userStateChanged(userinfo) {
+        const { data: res } = await this.$http.put(`users/${userinfo.id}/state/${userinfo.mg_state}`)
+        console.log(res.meta.status !== 200)
+        if (res.meta.status !== 200) {
+          userinfo.mg_state = !userinfo.mg_state
+          return this.$message.error('更新用户状态失败')
+        }
+        this.$message.success('更新用户状态成功')
       }
     }
   }
