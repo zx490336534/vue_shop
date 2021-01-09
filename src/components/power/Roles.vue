@@ -15,7 +15,36 @@
         </el-col>
       </el-row>
       <!--角色列表区域-->
-
+      <el-table :data="rolelist" border stripe>
+        <!--展开列-->
+        <el-table-column type="expand">
+          <template slot-scope="scope">
+            <el-row :class="['dbbottom',i1===0?'dbtop':'']" v-for="(item1,i1) in scope.row.children" :key="item1.id">
+              <!-- 渲染一级权限-->
+              <el-col :span="5">
+                <el-tag>{{item1.authName}}</el-tag>
+                <i class="el-icon-caret-right"></i>
+              </el-col>
+              <!-- 渲染二级和三级权限-->
+              <el-col :span="19"></el-col>
+            </el-row>
+            <pre>
+              {{scope.row}}
+            </pre>
+          </template>
+        </el-table-column>
+        <!--索引列-->
+        <el-table-column type="index"></el-table-column>
+        <el-table-column label="角色名称" prop="roleName"></el-table-column>
+        <el-table-column label="角色描述" prop="roleDesc"></el-table-column>
+        <el-table-column label="操作" width="300px">
+          <template>
+            <el-button type="primary" icon="el-icon-edit" size="mini">编辑</el-button>
+            <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+            <el-button type="warning" icon="el-icon-setting" size="mini">分配权限</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </el-card>
   </div>
 </template>
@@ -36,7 +65,7 @@
       // 获取所有角色列表
       async getRolesList() {
         const { data: res } = await this.$http.get('roles')
-        if (res.meta.status!==200){
+        if (res.meta.status !== 200) {
           return this.$message.error('获取角色列表失败')
         }
         this.rolelist = res.data
@@ -46,5 +75,15 @@
 </script>
 
 <style lang="less" scoped>
+  .el-tag {
+    margin: 7px;
+  }
 
+  .dbtop {
+    border-top: 1px solid #eee;
+  }
+
+  .dbbottom {
+    border-bottom: 1px solid #eee;
+  }
 </style>
