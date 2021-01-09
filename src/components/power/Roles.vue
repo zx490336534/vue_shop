@@ -23,7 +23,9 @@
                     :key="item1.id">
               <!-- 渲染一级权限-->
               <el-col :span="5">
-                <el-tag>{{item1.authName}}</el-tag>
+                <el-tag closable @close="removeRightById(scope.row,item1.id)">
+                  {{item1.authName}}
+                </el-tag>
                 <i class="el-icon-caret-right"></i>
               </el-col>
               <!-- 渲染二级和三级权限-->
@@ -31,11 +33,14 @@
                 <!--通过for循环嵌套渲染二级权限-->
                 <el-row :class="[i2===0?'':'bdtop','vcenter']" v-for="(item2,i2) in item1.children" :key="item2.id">
                   <el-col :span="6">
-                    <el-tag type="success">{{item2.authName}}</el-tag>
+                    <el-tag type="success" closable @close="removeRightById(scope.row,item2.id)">
+                      {{item2.authName}}
+                    </el-tag>
                     <i class="el-icon-caret-right"></i>
                   </el-col>
                   <el-col :span="18">
-                    <el-tag v-for="(item3,i3) in item2.children" :key="item3.id" type="warning">
+                    <el-tag v-for="(item3,i3) in item2.children" :key="item3.id" type="warning" closable
+                            @close="removeRightById(scope.row,item3.id)">
                       {{item3.authName}}
                     </el-tag>
                   </el-col>
@@ -80,6 +85,22 @@
           return this.$message.error('获取角色列表失败')
         }
         this.rolelist = res.data
+      },
+      //根据ID删除对应的权限
+      async removeRightById(role, rightId) {
+        const confirmResult = await this.$confirm('此操作将永久删除该权限, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          return this.$message.info('取消了删除！')
+        }
+        const { data: res } = await this.$http.delete(`roles/${role.id}/rights/${rightId}`)
+        if (res.meta.status !== 200) {
+          return this.$message.error('删除权限失败')
+        }
+        role.children = res.data
       }
     }
   }
