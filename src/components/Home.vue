@@ -1,5 +1,5 @@
 <template>
-  <el-container>
+  <el-container class="home-container">
     <!-- 头部区域 -->
     <el-header>Header
       <el-button type="info" @click="logout">退出</el-button>
@@ -27,5 +27,19 @@
 </script>
 
 <style lang="less" scoped>
+  .el-header {
+    background-color: #373d41;
+  }
 
+  .el-aside {
+    background-color: #333744;
+  }
+
+  .el-main {
+    background-color: #eaedf1;
+  }
+
+  .home-container {
+    height: 100%;
+  }
 </style>
