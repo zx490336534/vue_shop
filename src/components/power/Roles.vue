@@ -55,8 +55,8 @@
         <el-table-column label="角色描述" prop="roleDesc"></el-table-column>
         <el-table-column label="操作" width="300px">
           <template slot-scope="scope">
-            <el-button type="primary" icon="el-icon-edit" size="mini">编辑</el-button>
-            <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+            <el-button type="primary" icon="el-icon-edit" size="mini" @click="ShowEditrole(scope.row)">编辑</el-button>
+            <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleterole(scope.row.id)">删除</el-button>
             <el-button type="warning" icon="el-icon-setting" size="mini" @click="showSetRightDialog(scope.row)">
               分配权限
             </el-button>
@@ -98,6 +98,21 @@
           <el-button type="primary" @click="addrole">确 定</el-button>
         </span>
     </el-dialog>
+    <!--编辑角色对话框-->
+    <el-dialog title="编辑角色" :visible.sync="editroleVisible" width="50%" @close="addroleDialogClosed">
+      <el-form :model="roleInfo" :rules="addroleRules" ref="editroleRef" label-width="100px">
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input v-model="roleInfo.roleName"></el-input>
+        </el-form-item>
+        <el-form-item label="角色表述">
+          <el-input v-model="roleInfo.roleDesc"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+          <el-button @click="editroleVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editrole">确 定</el-button>
+        </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -111,7 +126,7 @@
         // 控制分配权限对话框的显示与隐藏
         setRightDialogVisible: false,
         // 所有权限的数据
-        rightslist: [],
+        rightsList: [],
         // 树形控件的属性绑定对象
         treeProps: {
           label: 'authName',
@@ -132,8 +147,9 @@
           roleName: [
             { required: true, message: '请输入角色名称', trigger: 'blur' }
           ]
-
-        }
+        },
+        // 编辑角色对话框的显示与隐藏
+        editroleVisible: false
       }
     },
     created() {
@@ -207,20 +223,17 @@
       },
       //添加角色
       async addrole() {
-        this.addroleVisible = true
         this.$refs.addroleRef.validate(async valid => {
           if (!valid) return
           const { data: res } = await this.$http.post('roles', {
             roleName: this.roleInfo.roleName,
             roleDesc: this.roleInfo.roleDesc
           })
-          console.log(res.meta.status)
           if (res.meta.status !== 201) return this.$message.error('添加角色失败！')
           this.getRolesList()
           this.addroleVisible = false
           this.$message.success('添加角色成功！')
         })
-
       },
       //监听添加角色对话框关闭
       addroleDialogClosed() {
@@ -228,8 +241,45 @@
           roleName: '',
           roleDesc: ''
         }
+        this.roleId = ''
+      },
+      // 点击编辑角色
+      ShowEditrole(roleInfo) {
+        this.roleId = roleInfo.id
+        this.roleInfo.roleName = roleInfo.roleName
+        this.roleInfo.roleDesc = roleInfo.roleDesc
+        this.editroleVisible = true
+      },
+      // 确认编辑角色
+      async editrole() {
+        this.$refs.editroleRef.validate(async valid => {
+          if (!valid) return
+          const { data: res } = await this.$http.put(`roles/${this.roleId}`, {
+            roleName: this.roleInfo.roleName,
+            roleDesc: this.roleInfo.roleDesc
+          })
+          if (res.meta.status !== 200) return this.$message.error('编辑角色失败！')
+          this.getRolesList()
+          this.editroleVisible = false
+          this.$message.success('编辑角色成功！')
+        })
+      },
+      async deleterole(id) {
+        const confirmResult = await this.$confirm('此操作将永久删除该角色, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          return this.$message.info('已取消删除')
+        }
+        const { data: res } = await this.$http.delete('roles/' + id)
+        if (res.meta.status !== 200) {
+          return this.$message.error('删除角色失败！')
+        }
+        this.getRolesList()
+        this.$message.success('删除角色成功')
       }
-
     }
   }
 </script>
