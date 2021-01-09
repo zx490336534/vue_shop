@@ -66,7 +66,7 @@
     </el-card>
 
     <!--分配权限的对话框-->
-    <el-dialog title="分配权限" :visible.sync="setRightDialogVisible" width="50%">
+    <el-dialog title="分配权限" :visible.sync="setRightDialogVisible" width="50%" @close="setRightDialogClosed">
       <!--树形控件-->
       <el-tree :data="rightsList"
                :props="treeProps"
@@ -152,6 +152,10 @@
         node.children.forEach(item => {
           this.getLeafKeys(item, arr)
         })
+      },
+      // 监听分配权限对话框的关闭事件
+      setRightDialogClosed() {
+        this.defKeys = []
       }
     }
   }
