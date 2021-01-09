@@ -31,7 +31,7 @@
 
 <script>
   export default {
-    name: "Login",
+    name: 'Login',
     data() {
       return {
         // 登录表单的数据绑定对象
@@ -47,13 +47,13 @@
             // message:出错提示
             // trigger:触发方式
             // blur: 鼠标失去焦点
-            {required: true, message: "请输入登录名称", trigger: "blur"},
-            {min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur'}
+            { required: true, message: '请输入登录名称', trigger: 'blur' },
+            { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
           ],
           // 验证命名是否合法
           password: [
-            {required: true, message: "请输入登录密码", trigger: "blur"},
-            {min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur'}
+            { required: true, message: '请输入登录密码', trigger: 'blur' },
+            { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
           ]
         }
       }
@@ -61,18 +61,18 @@
     methods: {
       // 点击重置按钮，重置登录表单
       resetLoginForm() {
-        this.$refs.loginFormRef.resetFields();
+        this.$refs.loginFormRef.resetFields()
       },
       login() {
         this.$refs.loginFormRef.validate(async valid => {
-          if (!valid) return;
-          const {data: res} = await this.$http.post("login", this.loginForm)
+          if (!valid) return
+          const { data: res } = await this.$http.post('login', this.loginForm)
           if (res.meta.status !== 200) return this.$message.error('登录失败')
           this.$message.success('登录成功')
           // token 只应在当前网站打开期间生效,所以将 token 保存在sessionStorage中
-          window.sessionStorage.setItem("token", res.data.token)
+          window.sessionStorage.setItem('token', res.data.token)
           this.$router.push('/home')
-        });
+        })
       }
     }
   }

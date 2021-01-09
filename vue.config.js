@@ -1,3 +1,4 @@
-module.exports = {
-  lintOnSave: false
-}
+// 关闭eslint 步骤1
+// module.exports = {
+//   lintOnSave: false
+// }
