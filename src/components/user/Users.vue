@@ -9,7 +9,7 @@
 
     <!-- 卡片视图区域 -->
     <el-card class="box-card">
-
+      <!-- 搜索与添加区域-->
       <el-row :gutter="20">
         <el-col :span="7">
           <el-input placeholder="请输入内容" v-model="input3" class="input-with-select">
@@ -20,6 +20,7 @@
           <el-button type="primary">添加用户</el-button>
         </el-col>
       </el-row>
+      <!--用户列表区域-->
       <el-table :data="userlist" border stripe>
         <el-table-column type="index"></el-table-column>
         <el-table-column label="姓名" prop="username"></el-table-column>
@@ -47,6 +48,16 @@
           </template>
         </el-table-column>
       </el-table>
+      <!--分页区域-->
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="queryInfo.pagenum"
+        :page-sizes="[1, 2, 5, 10]"
+        :page-size="queryInfo.pagesize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
+      </el-pagination>
     </el-card>
   </div>
 </template>
@@ -59,7 +70,9 @@
         // 用户列表的参数对象
         queryInfo: {
           query: '',
+          // 当前的页数
           pagenum: 1,
+          // 当前每页显示多少条数据
           pagesize: 2
         },
         userlist: [],
@@ -75,6 +88,16 @@
         if (res.meta.status !== 200) return this.$message.error('获取用户列表失败！')
         this.userlist = res.data.users
         this.total = res.data.total
+      },
+      // 监听每页最大展示改变
+      handleSizeChange(newSize) {
+        this.queryInfo.pagesize = newSize
+        this.getUserList()
+      },
+      // 监听页码值改变
+      handleCurrentChange(newPage) {
+        this.queryInfo.pagenum = newPage
+        this.getUserList()
       }
     }
   }
