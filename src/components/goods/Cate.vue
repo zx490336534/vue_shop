@@ -14,6 +14,22 @@
         </el-col>
       </el-row>
       <!--表格-->
+      <tree-table
+        :data="catelist"
+        :columns="columns"
+        :selection-type="false"
+        :expand-type="false"
+        show-index
+        index-text="#"
+        border
+        :show-row-hover="false"
+      >
+        <template slot="isok" slot-scope="scope">
+          <i v-if="scope.row.cat_deleted===false" class="el-icon-success" style="color: lightgreen;"></i>
+          <i v-else class="el-icon-error" style="color: red;"></i>
+        </template>
+
+      </tree-table>
       <!--分页-->
     </el-card>
   </div>
@@ -33,7 +49,19 @@
           pagesize: 5
         },
         // 总数据条数
-        total: 0
+        total: 0,
+        columns: [
+          {
+            label: '分类名称',
+            prop: 'cat_name'
+          },
+          {
+            label: '是否有效',
+            // 表示当前列定义为模版
+            type: 'template',
+            template: 'isok'
+          }
+        ]
       }
     },
     created() {
