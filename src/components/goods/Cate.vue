@@ -59,6 +59,7 @@
       title="添加分类"
       :visible.sync="addCatDialogVisible"
       width="50%"
+      @close="addCateDialogClosed"
     >
       <!--添加分类的表单-->
       <el-form :model="addCateForm" :rules="addCateFormRules" ref="addCateFormRef" label-width="100px">
@@ -80,7 +81,7 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button @click="addCatDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addCatDialogVisible = false">确 定</el-button>
+        <el-button type="primary" @click="addCate">确 定</el-button>
       </span>
     </el-dialog>
 
@@ -192,9 +193,33 @@
       },
       // 选则项变化出发该函数
       async parentCateChanged() {
+        if (this.selectedKeys.length > 0) {
+          this.addCateForm.cat_pid = this.selectedKeys[this.selectedKeys.length - 1]
+          this.addCateForm.cat_level = this.selectedKeys.length
+          return
+        } else {
+          this.addCateForm.cat_pid = 0
+          this.addCateForm.cat_level = 0
+        }
 
+      },
+      addCateDialogClosed() {
+        this.$refs.addCateFormRef.resetFields()
+        this.selectedKeys = []
+        this.addCateForm.cat_level = 0
+        this.addCateForm.cat_pid = 0
+      },
+      // 点击按钮，添加新的分类
+      addCate() {
+        this.$refs.addCateFormRef.validate(async valid => {
+          if (!valid) return
+          const { data: res } = await this.$http.post('categories', this.addCateForm)
+          if (res.meta.status !== 201) return this.$message.error('添加分类失败！')
+          this.getCateList()
+          this.addCatDialogVisible = false
+          this.$message.success('添加分类成功！')
+        })
       }
-
     }
   }
 </script>
