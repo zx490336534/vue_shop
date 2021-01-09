@@ -38,7 +38,8 @@
         </template>
         <!--操作-->
         <template slot="opt" slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" size="mini">编辑</el-button>
+          <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditCatDialog(scope.row)">编辑
+          </el-button>
           <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
         </template>
 
@@ -55,6 +56,7 @@
       </el-pagination>
     </el-card>
 
+    <!--添加分类对话框-->
     <el-dialog
       title="添加分类"
       :visible.sync="addCatDialogVisible"
@@ -82,6 +84,26 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="addCatDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="addCate">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!--编辑对话框-->
+    <el-dialog
+      title="编辑分类"
+      :visible.sync="editCatDialogVisible"
+      width="50%"
+      @close="editCateDialogClosed"
+    >
+      <!--编辑分类的表单-->
+      <el-form :model="editCateForm" :rules="addCateFormRules" ref="editCateFormRef" label-width="100px">
+        <el-form-item label="分类名称:" prop="cat_name">
+          <el-input v-model="editCateForm.cat_name"></el-input>
+        </el-form-item>
+      </el-form>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editCatDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editCate">确 定</el-button>
       </span>
     </el-dialog>
 
@@ -151,7 +173,14 @@
           checkStrictly: true
         },
         // 选中的父级分类的Id数组
-        selectedKeys: []
+        selectedKeys: [],
+        // 控制编辑对话框显示与隐藏
+        editCatDialogVisible: false,
+        // 编辑分类序号
+        catId: '',
+        editCateForm: {
+          cat_name: ''
+        }
       }
     },
     created() {
@@ -219,7 +248,29 @@
           this.addCatDialogVisible = false
           this.$message.success('添加分类成功！')
         })
+      },
+      showEditCatDialog(editrow) {
+        this.editCatDialogVisible = true
+        this.catId = editrow.cat_id
+        this.editCateForm.cat_name = editrow.cat_name
+
+      },
+      editCate() {
+        this.$refs.editCateFormRef.validate(async valid => {
+          if (!valid) return
+          const { data: res } = await this.$http.put(`categories/${this.catId}`, this.editCateForm)
+          if (res.meta.status !== 200) return this.$message.error('编辑分类名称失败！')
+          this.getCateList()
+          this.editCatDialogVisible = false
+          this.$message.success('编辑分类名称成功！')
+        })
+      },
+      editCateDialogClosed() {
+        this.$refs.editCateFormRef.resetFields()
+        this.catId = ''
+        this.editCateForm.cat_name = ''
       }
+
     }
   }
 </script>
