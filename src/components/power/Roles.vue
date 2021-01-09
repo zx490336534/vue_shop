@@ -11,7 +11,7 @@
       <!--添加角色按钮区域-->
       <el-row>
         <el-col>
-          <el-button type="primary">添加角色</el-button>
+          <el-button type="primary" @click="addroleVisible=true">添加角色</el-button>
         </el-col>
       </el-row>
       <!--角色列表区域-->
@@ -82,6 +82,22 @@
         <el-button type="primary" @click="allotRights">确 定</el-button>
       </span>
     </el-dialog>
+    <!--添加角色的对话框-->
+    <el-dialog title="添加角色" :visible.sync="addroleVisible" width="50%" @close="addroleDialogClosed">
+      <el-form :model="roleInfo" :rules="addroleRules" ref="addroleRef" label-width="100px">
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input v-model="roleInfo.roleName"></el-input>
+        </el-form-item>
+        <el-form-item label="角色表述">
+          <el-input v-model="roleInfo.roleDesc"></el-input>
+        </el-form-item>
+
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+          <el-button @click="addroleVisible = false">取 消</el-button>
+          <el-button type="primary" @click="addrole">确 定</el-button>
+        </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -104,7 +120,20 @@
         // 默认选中的节点ID
         defKeys: [],
         //当前即将分配权限的角色id
-        roleId: ''
+        roleId: '',
+        //添加角色表单内容
+        roleInfo: {
+          roleName: '',
+          roleDesc: ''
+        },
+        // 添加角色对话框的显示与隐藏
+        addroleVisible: false,
+        addroleRules: {
+          roleName: [
+            { required: true, message: '请输入角色名称', trigger: 'blur' }
+          ]
+
+        }
       }
     },
     created() {
@@ -175,7 +204,32 @@
         this.$message.success('分配权限成功！')
         this.getRolesList()
         this.setRightDialogVisible = false
+      },
+      //添加角色
+      async addrole() {
+        this.addroleVisible = true
+        this.$refs.addroleRef.validate(async valid => {
+          if (!valid) return
+          const { data: res } = await this.$http.post('roles', {
+            roleName: this.roleInfo.roleName,
+            roleDesc: this.roleInfo.roleDesc
+          })
+          console.log(res.meta.status)
+          if (res.meta.status !== 201) return this.$message.error('添加角色失败！')
+          this.getRolesList()
+          this.addroleVisible = false
+          this.$message.success('添加角色成功！')
+        })
+
+      },
+      //监听添加角色对话框关闭
+      addroleDialogClosed() {
+        this.roleInfo = {
+          roleName: '',
+          roleDesc: ''
+        }
       }
+
     }
   }
 </script>
