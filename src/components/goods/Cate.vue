@@ -66,6 +66,15 @@
           <el-input v-model="addCateForm.cat_name"></el-input>
         </el-form-item>
         <el-form-item label="父级分类:">
+          <!--options用来指定数据源-->
+          <!--props用来指定配置对象-->
+          <el-cascader
+            v-model="selectedKeys"
+            :options="parentCateList"
+            :props="cascaderProps"
+            @change="parentCateChanged"
+            clearable
+          ></el-cascader>
         </el-form-item>
       </el-form>
 
@@ -130,7 +139,18 @@
           cat_name: [
             { required: true, message: '请输入分类名称', trigger: 'blue' }
           ]
-        }
+        },
+        // 父级分类列表
+        parentCateList: [],
+        // 指定级联选择器的配置对象
+        cascaderProps: {
+          value: 'cat_id',
+          label: 'cat_name',
+          children: 'children',
+          checkStrictly: true
+        },
+        // 选中的父级分类的Id数组
+        selectedKeys: []
       }
     },
     created() {
@@ -155,7 +175,24 @@
       },
       //点击按钮，展示添加分类的对话框
       showAddCateDialog() {
+        this.getParentCateList()
         this.addCatDialogVisible = true
+      },
+      //获取父级分类的数据列表
+      async getParentCateList() {
+        const { data: res } = await this.$http.get('categories', {
+          params: {
+            type: 2
+          }
+        })
+        if (res.meta.status !== 200) {
+          return this.$message.error('获取父级分类数据失败！')
+        }
+        this.parentCateList = res.data
+      },
+      // 选则项变化出发该函数
+      async parentCateChanged() {
+
       }
 
     }
@@ -165,5 +202,9 @@
 <style lang="less" scoped>
   .treeTable {
     margin-top: 15px;
+  }
+
+  .el-cascader {
+    width: 100%;
   }
 </style>
