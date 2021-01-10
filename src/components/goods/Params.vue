@@ -27,7 +27,17 @@
             @change="handleChange"></el-cascader>
         </el-col>
       </el-row>
-
+      <!--tab页签区域-->
+      <el-tabs v-model="activeName" @tab-click="handleTabClick">
+        <!--添加动态参数的面板-->
+        <el-tab-pane label="动态参数" name="first">
+          <el-button type="primary" size="mini" :disabled="isBtnDiabled">添加参数</el-button>
+        </el-tab-pane>
+        <!--添加静态属性的面板-->
+        <el-tab-pane label="静态属性" name="second">
+          <el-button type="primary" size="mini" :disabled="isBtnDiabled">添加属性</el-button>
+        </el-tab-pane>
+      </el-tabs>
     </el-card>
   </div>
 </template>
@@ -46,7 +56,17 @@
           children: 'children'
         },
         //级联选择框双向绑定到的数组
-        selectedCateKeys: []
+        selectedCateKeys: [],
+        // 被激活的页签的名称
+        activeName: 'first'
+      }
+    },
+    computed: {
+      isBtnDiabled() {
+        if (this.selectedCateKeys.length !== 3) {
+          return true
+        }
+        return false
       }
     },
     created() {
@@ -67,6 +87,10 @@
         if (this.selectedCateKeys.length !== 3) {
           this.selectedCateKeys = []
         }
+      },
+      //Tab页签被点击
+      handleTabClick() {
+
       }
     }
 
