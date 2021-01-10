@@ -81,9 +81,9 @@
           <el-tab-pane label="商品内容" name="4">
             <!--富文本编辑器-->
             <quill-editor v-model="addForm.goods_introduce"></quill-editor>
+            <!--添加商品按钮-->
+            <el-button type="primary" class="btnAdd" @click="add">添加商品</el-button>
           </el-tab-pane>
-          <!--添加商品按钮-->
-          <el-button type="primary" class="btnAdd">添加商品</el-button>
         </el-tabs>
       </el-form>
 
@@ -101,6 +101,8 @@
 </template>
 
 <script>
+  import _ from 'lodash'
+
   export default {
     name: 'Add',
     data() {
@@ -214,6 +216,39 @@
           })
           this.onlyTableData = res.data
         }
+      },
+      async add() {
+        this.$refs.addFormRef.validate(async valid => {
+          if (!valid) {
+            return this.$message.error('请填写必要的表单项！')
+          }
+        })
+        // lodash   cloneDeep(obj) 深拷贝
+        const form = _.cloneDeep(this.addForm)
+        form.goods_cat = form.goods_cat.join(',')
+        // 处理动态参数
+        this.manyTableData.forEach(item => {
+          const newInfo = {
+            attr_id: item.attr_id,
+            attr_value: item.attr_vals.join(' ')
+          }
+          this.addForm.attrs.push(newInfo)
+        })
+        // 处理静态属性
+        this.onlyTableData.forEach(item => {
+          const newInfo = { attr_id: item.attr_id, attr_value: item.attr_vals }
+          this.addForm.attrs.push(newInfo)
+        })
+
+        form.attrs = this.addForm.attrs
+
+        const { data: res } = await this.$http.post('goods', form)
+        if (res.meta.status !== 201) {
+          return this.$message.error('添加商品失败！')
+        }
+        this.$message.success('添加商品成功！')
+        this.$router.push('/goods')
+
       }
     },
     computed: {
