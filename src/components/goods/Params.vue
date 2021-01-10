@@ -44,8 +44,8 @@
                   v-model="scope.row.inputValue"
                   ref="saveTagInput"
                   size="small"
-                  @keyup.enter.native="handleInputConfirm"
-                  @blur="handleInputConfirm"
+                  @keyup.enter.native="handleInputConfirm(scope.row)"
+                  @blur="handleInputConfirm(scope.row)"
                 >
                 </el-input>
                 <!--添加按钮-->
@@ -324,7 +324,24 @@
         this.getParamsData()
       },
       //文本框失去焦点或者按下Enter都会触发
-      handleInputConfirm() {
+      async handleInputConfirm(row) {
+        if (row.inputValue.trim().length === 0) {
+          row.inputValue = ''
+          row.inputVisible = false
+          return
+        }
+        row.attr_vals.push(row.inputValue.trim())
+        row.inputValue = ''
+        row.inputVisible = false
+        const { data: res } = await this.$http.put(`categories/${this.cateId}/attributes/${row.attr_id}`, {
+          'attr_name': row.attr_name,
+          'attr_sel': row.attr_sel,
+          'attr_vals': row.attr_vals.join(' ')
+        })
+        if (res.meta.status !== 200) {
+          return this.$message.error('修改参数项失败！')
+        }
+        this.$message.success('修改参数项成功！')
       },
       //点击按钮，展示文本输入框
       showInput(row) {
