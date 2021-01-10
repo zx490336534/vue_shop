@@ -27,7 +27,7 @@
 
       <el-form ref="addFormRef" :model="addForm" :rules="addFormRules" label-width="100px" label-position="top">
         <!--tab栏区域-->
-        <el-tabs :tab-position="'left'" v-model="activeIndex" :before-leave="beforeTabLeave" tab-click="tabClicked">
+        <el-tabs :tab-position="'left'" v-model="activeIndex" :before-leave="beforeTabLeave" @tab-click="tabClicked">
           <el-tab-pane label="基本信息" name="0">
             <el-form-item label="商品名称" prop="goods_name">
               <el-input v-model="addForm.goods_name"></el-input>
@@ -53,16 +53,45 @@
 
           </el-tab-pane>
           <el-tab-pane label="商品参数" name="1">
+            <el-form-item :label="item.attr_name" v-for="item in manyTableData" :key="item.attr_id">
+              <!--复选框组-->
+              <el-checkbox-group v-model="item.attr_vals">
+                <el-checkbox :key="i" :label="cb" v-for="(cb,i) in item.attr_vals" border></el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
           </el-tab-pane>
           <el-tab-pane label="商品属性" name="2">
+            <el-form-item :label="item.attr_name" v-for="item in onlyTableData" :key="item.attr_id">
+              <el-input v-model="item.attr_vals"></el-input>
+            </el-form-item>
           </el-tab-pane>
-          <el-tab-pane label="商品图片" name="3">商品图片</el-tab-pane>
+          <el-tab-pane label="商品图片" name="3">
+            <!--action表示图片要上传到的后台API地址-->
+
+            <el-upload
+              :action="uploadURL"
+              :on-preview="handlePreview"
+              :on-remove="handleRemove"
+              :headers="headerObj"
+              :on-success="handleSuccess"
+              list-type="picture">
+              <el-button size="small" type="primary">点击上传</el-button>
+            </el-upload>
+          </el-tab-pane>
           <el-tab-pane label="商品内容" name="4">商品内容</el-tab-pane>
         </el-tabs>
       </el-form>
 
     </el-card>
-
+    <!--图片预览-->
+    <el-dialog
+      title="图片预览"
+      :visible.sync="previewVisible"
+      width="50%"
+      @close="previewPath=''"
+    >
+      <img :src="previewPath" alt="" class="previewImg">
+    </el-dialog>
   </div>
 </template>
 
@@ -102,7 +131,15 @@
           value: 'cat_id',
           children: 'children'
         },
-        manyTableData: []
+        manyTableData: [],
+        onlyTableData: [],
+        uploadURL: 'http://timemeetyou.com:8889/api/private/v1/upload',
+        headerObj: {
+          Authorization: window.sessionStorage.getItem('token')
+        },
+        previewPath: '',
+        //控制图片预览对话框的显示与隐藏
+        previewVisible: false
       }
     },
     created() {
@@ -116,31 +153,61 @@
           return this.$message.error('获取商品分类数据失败！')
         }
         this.catelist = res.data
-        console.log(this.catelist)
       },
-
       handleChange() {
-        console.log(this.addForm.good_cat)
+        console.log(this.addForm.goods_cat)
         if (this.addForm.goods_cat.length !== 3) {
-          this.addForm.goods_cat.length = []
+          this.addForm.goods_cat = []
         }
       },
       beforeTabLeave(activeName, oldActiveName) {
         console.log('即将离开' + oldActiveName)
         console.log('即将进入' + activeName)
         if (oldActiveName === '0' && this.addForm.goods_cat.length !== 3) {
-          this.$message.error('请先选中商品分类！')
+          this.$message.error('请先选择商品分类！')
           return false
         }
-
+      },
+      // 处理图片预览效果
+      handlePreview(file) {
+        console.log(file)
+        this.previewPath = file.response.data.url
+        this.previewVisible = true
+      },
+      //处理移除图片的操作
+      handleRemove(file) {
+        console.log(file)
+        const filePath = file.response.data.tmp_path
+        const i = this.addForm.pics.findIndex(x => x.pic === filePath)
+        this.addForm.pics.splice(i, 1)
+        console.log(this.addForm)
+      },
+      handleSuccess(response) {
+        const picInfo = { pic: response.data.tmp_path }
+        this.addForm.pics.push(picInfo)
+        console.log(this.addForm)
       },
       async tabClicked() {
         if (this.activeIndex === '1') {
           const { data: res } = await this.$http.get(`categories/${this.cateId}/attributes`, { params: { sel: 'many' } })
-          if (res.meta.data.status !== 200) {
+          if (res.meta.status !== 200) {
             return this.$message.error('获取动态参数列表失败！')
           }
+          res.data.forEach(item => {
+            item.attr_vals =
+              item.attr_vals.length === 0 ? [] : item.attr_vals.split(' ')
+          })
           this.manyTableData = res.data
+        } else if (this.activeIndex === '2') {
+          const { data: res } = await this.$http.get(`categories/${this.cateId}/attributes`, { params: { sel: 'only' } })
+          if (res.meta.status !== 200) {
+            return this.$message.error('获取静态属性失败！')
+          }
+          res.data.forEach(item => {
+            item.attr_vals =
+              item.attr_vals.length === 0 ? [] : item.attr_vals.split(' ')
+          })
+          this.onlyTableData = res.data
         }
       }
     },
@@ -156,5 +223,11 @@
 </script>
 
 <style lang="less" scoped>
+  .el-checkbox {
+    margin: 0 10px 0 0 !important;
+  }
 
+  .previewImg {
+    width: 100%;
+  }
 </style>
