@@ -36,7 +36,9 @@
             <el-table-column type="expand">
               <template slot-scope="scope">
                 <!--循环渲染的Tag标签-->
-                <el-tag v-for="(item,i) in scope.row.attr_vals" :key="i" closable>{{item}}</el-tag>
+                <el-tag v-for="(item,i) in scope.row.attr_vals" :key="i" closable @close="handleClose(i,scope.row)">
+                  {{item}}
+                </el-tag>
                 <!--输入的文本框-->
                 <el-input
                   class="input-new-tag"
@@ -229,6 +231,9 @@
         console.log(this.selectedCateKeys)
         if (this.selectedCateKeys.length !== 3) {
           this.selectedCateKeys = []
+          this.manyTableData = []
+          this.onlyTableData = []
+          return
         }
         if (this.cateId !== null) {
           //根据所选分类的ID，和当前所处面板获取相应参数
@@ -333,6 +338,19 @@
         row.attr_vals.push(row.inputValue.trim())
         row.inputValue = ''
         row.inputVisible = false
+        this.saveAttrVals(row)
+      },
+      //点击按钮，展示文本输入框
+      showInput(row) {
+        row.inputVisible = true
+        //让文本框自动获得焦点
+        //$nextTick方法的作用，当页面上元素被重新渲染之后，才会指定回调函数中的代码
+        this.$nextTick(_ => {
+          this.$refs.saveTagInput.$refs.input.focus()
+        })
+      },
+      // 将对attr_vals的操作保存到数据库
+      async saveAttrVals(row) {
         const { data: res } = await this.$http.put(`categories/${this.cateId}/attributes/${row.attr_id}`, {
           'attr_name': row.attr_name,
           'attr_sel': row.attr_sel,
@@ -343,14 +361,10 @@
         }
         this.$message.success('修改参数项成功！')
       },
-      //点击按钮，展示文本输入框
-      showInput(row) {
-        row.inputVisible = true
-        //让文本框自动获得焦点
-        //$nextTick方法的作用，当页面上元素被重新渲染之后，才会指定回调函数中的代码
-        this.$nextTick(_ => {
-          this.$refs.saveTagInput.$refs.input.focus()
-        })
+      //删除对应的参数可选项
+      handleClose(i, row) {
+        row.attr_vals.splice(i, 1)
+        this.saveAttrVals(row)
       }
 
 
