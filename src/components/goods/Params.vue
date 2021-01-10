@@ -33,7 +33,26 @@
         <el-tab-pane label="动态参数" name="many">
           <el-button type="primary" size="mini" :disabled="isBtnDiabled" @click="addDialogVisible=true">添加参数</el-button>
           <el-table :data="manyTableData" border stripe>
-            <el-table-column type="expand"></el-table-column>
+            <el-table-column type="expand">
+              <template slot-scope="scope">
+                <!--循环渲染的Tag标签-->
+                <el-tag v-for="(item,i) in scope.row.attr_vals" :key="i" closable>{{item}}</el-tag>
+                <!--输入的文本框-->
+                <el-input
+                  class="input-new-tag"
+                  v-if="scope.row.inputVisible"
+                  v-model="scope.row.inputValue"
+                  ref="saveTagInput"
+                  size="small"
+                  @keyup.enter.native="handleInputConfirm"
+                  @blur="handleInputConfirm"
+                >
+                </el-input>
+                <!--添加按钮-->
+                <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">+ New Tag
+                </el-button>
+              </template>
+            </el-table-column>
             <el-table-column type="index"></el-table-column>
             <el-table-column label="参数名称" prop="attr_name"></el-table-column>
             <el-table-column label="操作">
@@ -153,7 +172,11 @@
           attr_name: [
             { required: true, message: '请输入参数名称', trigger: 'blur' }
           ]
-        }
+        },
+        // 控制按钮与文本框的切换显示
+        inputVisible: false,
+        // 文本框中输入的内容
+        inputValue: ''
       }
     },
     computed: {
@@ -216,6 +239,12 @@
           if (res.meta.status !== 200) {
             return this.$message.error('获取参数列表失败！')
           }
+          res.data.forEach(item => {
+            item.attr_vals = item.attr_vals ? item.attr_vals.split(' ') : []
+            // 控制文本框的显示与隐藏
+            item.inputVisible = false
+            item.inputValue = ''
+          })
           if (this.activeName === 'many') {
             this.manyTableData = res.data
           } else {
@@ -293,7 +322,20 @@
         }
         this.$message.success('删除参数成功！')
         this.getParamsData()
+      },
+      //文本框失去焦点或者按下Enter都会触发
+      handleInputConfirm() {
+      },
+      //点击按钮，展示文本输入框
+      showInput(row) {
+        row.inputVisible = true
+        //让文本框自动获得焦点
+        //$nextTick方法的作用，当页面上元素被重新渲染之后，才会指定回调函数中的代码
+        this.$nextTick(_ => {
+          this.$refs.saveTagInput.$refs.input.focus()
+        })
       }
+
 
     }
 
@@ -303,5 +345,13 @@
 <style lang="less" scoped>
   .cat_opt {
     margin: 15px 0;
+  }
+
+  .el-tag {
+    margin: 10px;
+  }
+
+  .input-new-tag {
+    width: 150px;
   }
 </style>
